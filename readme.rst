@@ -1,10 +1,9 @@
 Publish Sentence app in vK8S
 ####################################################################
 
-.. image:: ./_pictures/XC-vK8S-Sentence.gif
-   :align: center
-   :width: 1200
-   :alt: Demo
+.. image:: https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/maxresdefault.jpg
+    :alt: demo
+    :target: https://www.youtube.com/watch?v=Th6kKmvHxtI
 
 .. contents:: Contents
     :local:
