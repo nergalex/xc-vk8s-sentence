@@ -1,6 +1,8 @@
 Publish Sentence app in vK8S
 ####################################################################
 
+Video demo, click on it:
+
 .. raw:: html
 
     <a href="http://www.youtube.com/watch?v=Th6kKmvHxtI"><img src="http://img.youtube.com/vi/Th6kKmvHxtI/0.jpg" width="500" height="300" title="demo vK8S" alt="demo vK8S"></a>
