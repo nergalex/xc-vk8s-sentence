@@ -103,7 +103,7 @@ and with a security policy.
 
 The security logs are available in the XC Console, with an AI assistant to help you to explain the cause and the next steps to do
 
-.. image:: ./XC-LB-log_security.png
+.. image:: ./_pictures/XC-LB-log_security.png
    :align: center
    :width: 1000
    :alt: Public Web - log
