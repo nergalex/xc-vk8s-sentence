@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "name": "{{ extra_app.name }}-internal-api-gw",
+    "namespace": "{{ extra_volterra_namespace }}",
+    "labels": {
+      "ves.io/app_type": "cloudbuilder",
+      "owner": "{{ extra_owner_email.split('@')[0] }}",
+      "project": "cloudbuilder"
+    },
+    "description": "Cloud App Stack workshop",
+    "disable": false
+  },
+  "spec": {
+    "domains": [
+        "api-internal",
+      {%- for component in extra_app.components -%}
+        "ms-{{ component.name }}",
+        "ms-{{ component.name }}.{{ extra_volterra_namespace }}"
+      {%- if not loop.last -%},{% endif %}
+      {%- endfor -%}
+    ],
+    "http": {
+      "dns_volterra_managed": false,
+      "port": 80
+    },
+    "advertise_custom": {
+      "advertise_where": [
+        {
+          "virtual_site": {
+              "network": "SITE_NETWORK_SERVICE",
+              "virtual_site": {
+                  "tenant": "{{ extra_volterra.tenant.full }}",
+                  "namespace": "{{ extra_volterra_namespace }}",
+                  "name": "cloudbuilder-landing-zones",
+                  "kind": "virtual_site"
+              }
+          },
+          "use_default_port": {}
+        }
+      ]
+    },
+    "default_route_pools": [],
+    "routes": [
+      {
+        "simple_route": {
+          "http_method": "ANY",
+          "path": {
+            "prefix": "/api/sentence"
+          },
+          "headers": [],
+          "incoming_port": {
+            "no_port_match": {}
+          },
+          "origin_pools": [
+            {
+              "pool": {
+                "tenant": "{{ extra_volterra.tenant.full }}",
+                "namespace": "{{ extra_volterra_namespace }}",
+                "name": "sentence-generator",
+                "kind": "origin_pool"
+              },
+              "weight": 1,
+              "priority": 1,
+              "endpoint_subsets": {}
+            }
+          ],
+          "disable_host_rewrite": {}
+        }
+      },
+      {
+        "simple_route": {
+          "http_method": "ANY",
+          "path": {
+            "prefix": "/api/backgrounds/"
+          },
+          "headers": [],
+          "incoming_port": {
+            "no_port_match": {}
+          },
+          "origin_pools": [
+            {
+              "pool": {
+                "tenant": "{{ extra_volterra.tenant.full }}",
+                "namespace": "{{ extra_volterra_namespace }}",
+                "name": "sentence-backgrounds",
+                "kind": "origin_pool"
+              },
+              "weight": 1,
+              "priority": 1,
+              "endpoint_subsets": {}
+            }
+          ],
+          "disable_host_rewrite": {}
+        }
+      },
+      {%- for component in extra_app.components -%}
+        {%- if component.name not in ("frontend", "generator") %}
+          {
+            "simple_route": {
+              "http_method": "ANY",
+              "path": {
+                "prefix": "/"
+              },
+              "headers": [
+                {
+                  "name": "host",
+                  "regex": "^ms-{{ component.name }}(|\\.{{ extra_volterra_namespace }})$",
+                  "invert_match": false
+                }
+              ],
+              "origin_pools": [
+                {
+                  "pool": {
+                    "tenant": "{{ extra_volterra.tenant.full }}",
+                    "namespace": "{{ extra_volterra_namespace }}",
+                    "name": "{{ extra_app.name }}-{{ component.name }}"
+                  },
+                  "weight": 1,
+                  "priority": 1,
+                  "endpoint_subsets": {}
+                }
+              ],
+              "disable_host_rewrite": {}
+            }
+          }
+          {%- if not loop.last -%},{% endif %}
+        {% endif %}
+      {%- endfor -%}
+    ],
+    "app_firewall": {
+      "tenant": "{{ extra_volterra.tenant.full }}",
+      "namespace": "{{ extra_volterra_namespace }}",
+      "name": "{{ extra_app.name }}"
+    },
+    "add_location": false,
+    "no_challenge": {},
+    "user_id_client_ip": {},
+    "disable_rate_limit": {},
+    "waf_exclusion_rules": [],
+    "blocked_clients": [],
+    "trusted_clients": [],
+    "ddos_mitigation_rules": [],
+    "service_policies_from_namespace": {},
+    "round_robin": {},
+    "multi_lb_app": {},
+    "disable_bot_defense": {},
+    "host_name": "",
+    "dns_info": []
+  }
+}

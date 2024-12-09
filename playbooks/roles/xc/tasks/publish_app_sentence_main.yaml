@@ -1,0 +1,239 @@
+- name: set var NameSpace Auto
+  set_fact:
+    extra_volterra_namespace: "{{ extra_app.name }}{{ extra_volterra_site_id }}-{{ extra_env }}"
+  when: extra_namespace == 'auto'
+
+- name: set var NameSpace Defined
+  set_fact:
+    extra_volterra_namespace: "{{ extra_namespace }}"
+  when: extra_namespace != 'auto'
+
+- name: Create or Update Health Check
+  block:
+
+    - name: GET Health Check
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/healthchecks/{{ extra_app.name }}-{{ item.name }}"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        status_code: 200, 404, 409
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      register: var_register
+
+    - name: CREATE Health Check
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/healthchecks"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','health_check_sentence.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: var_register.results[cur_index].status == 404
+
+    - name: UPDATE Health Check
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/healthchecks/{{ extra_app.name }}-{{ item.name }}"
+        method: PUT
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','health_check_sentence.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: var_register.results[cur_index].status == 200
+
+- name: Create or Update Origin Pool Frontend
+  block:
+
+    - name: GET Origin Pool Frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools/{{ extra_app.name }}-{{ item.name }}"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        status_code: 200, 404
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name in ['frontend']
+      register: var_register
+
+    - name: CREATE Origin Pool Frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','origin_pool_sentence_front.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name in ['frontend'] and var_register.results[cur_index].status == 404
+
+    - name: UPDATE Origin Pool Frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools/{{ extra_app.name }}-{{ item.name }}"
+        method: PUT
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','origin_pool_sentence_front.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name in ['frontend'] and var_register.results[cur_index].status == 200
+
+- name: Create or Update Origin Pool API
+  block:
+
+    - name: GET Origin Pool API
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools/{{ extra_app.name }}-{{ item.name }}"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        status_code: 200, 404
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name not in ['frontend']
+      register: var_register
+
+    - name: CREATE Origin Pool API
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','origin_pool_sentence_front.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name not in ['frontend'] and var_register.results[cur_index].status == 404
+
+    - name: UPDATE Origin Pool API
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/origin_pools/{{ extra_app.name }}-{{ item.name }}"
+        method: PUT
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','origin_pool_sentence_front.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      loop: "{{ extra_app.components }}"
+      loop_control:
+        index_var: cur_index
+      when: extra_app.components[cur_index].name not in ['frontend'] and var_register.results[cur_index].status == 200
+
+
+- name: Create or Update HTTP LB MS
+  block:
+
+    - name: GET HTTP LB MS
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers/{{ extra_app.name }}-internal-api-gw"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        status_code: 200, 404
+        validate_certs: no
+      register: var_register
+
+    - name: CREATE HTTP LB MS
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','http_lb_app_sentence_ms_main.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      when: var_register.status == 404
+
+    - name: UPDATE HTTP LB MS
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers/{{ extra_app.name }}-internal-api-gw"
+        method: PUT
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','http_lb_app_sentence_ms_main.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      when: var_register.status == 200
+
+- name: Create or Update HTTP LB frontend
+  block:
+
+    - name: GET HTTP LB frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers/{{ extra_app.name }}-public"
+        method: GET
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        status_code: 200, 404
+        validate_certs: no
+      register: var_register
+
+    - name: CREATE HTTP LB frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','http_lb_app_sentence_frontend_main.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      when: var_register.status == 404
+
+    - name: UPDATE HTTP LB frontend
+      uri:
+        url: "https://{{ extra_volterra.tenant.short }}.console.ves.volterra.io/api/config/namespaces/{{ extra_volterra_namespace }}/http_loadbalancers/{{ extra_app.name }}-public"
+        method: PUT
+        headers:
+          Content-Type: application/json
+          Authorization: "APIToken {{ extra_volterra.token }}"
+        body: "{{ lookup('template','http_lb_app_sentence_frontend_main.json') }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      when: var_register.status == 200
+
+

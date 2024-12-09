@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "name": "{{ extra_app.name }}-{{ item.name }}",
+    "namespace": "{{ extra_volterra_namespace }}",
+    "labels": {
+      "owner": "{{ extra_owner_email.split('@')[0] }}",
+      "project": "cloudbuilder"
+    },
+    "annotations": {
+      "ves.io/app": "sentence"
+    },
+    "description": "Cloud App Stack",
+    "disable": false
+  },
+    "spec": {
+        "service":  {
+            "num_replicas": 1,
+            "containers": [
+                {
+                    "name": "{{ item.name }}",
+                    "image": {
+                        "name": "{{ stats_acr_login_server }}/{{ item.name }}:{{ item.version }}",
+                        "container_registry": {
+                            "tenant": "{{ extra_volterra.tenant.full }}",
+                            "namespace": "{{ extra_volterra_namespace }}",
+                            "name": "{{ stats_acr_login_server  | replace('.', '-') }}"
+                        },
+                        "pull_policy": "IMAGE_PULL_POLICY_ALWAYS"
+                    },
+                    "init_container": false,
+                    "flavor": "CONTAINER_FLAVOR_TYPE_MEDIUM"
+                }
+            ],
+            "volumes": [
+              {
+                "name": "docker-entrypoint",
+                "empty_dir": {
+                  "size_limit": 0,
+                  "mount": {
+                    "mode": "VOLUME_MOUNT_READ_ONLY",
+                    "mount_path": "/docker-entrypoint.d/"
+                  }
+                }
+              }
+            ],
+            "configuration":{
+              "parameters": [
+                {
+                  "file": {
+                    "name": "frontend.conf",
+                    "data": "string:///{{ lookup('template', 'nginx-sentence-frontend.conf') | b64encode }}",
+                    "volume_name": "frontend",
+                    "mount": {
+                      "mode": "VOLUME_MOUNT_READ_ONLY",
+                      "mount_path": "/etc/nginx/conf.d/frontend.conf",
+                      "sub_path": "frontend.conf"
+                    }
+                  }
+                }
+              ]
+            },
+            "deploy_options":
+            {
+                "deploy_ce_virtual_sites":
+                {
+                    "virtual_site":
+                    [
+                        {
+                            "tenant": "{{ extra_volterra.tenant.full }}",
+                            "namespace": "{{ extra_volterra_namespace }}",
+                            "name": "cloudbuilder-landing-zones",
+                            "kind": "virtual_site"
+                        }
+                    ]
+                }
+            },
+            "advertise_options": {
+              "advertise_in_cluster": {
+                "multi_ports": {
+                  "ports": [
+                    {
+                      "name": "http-8080",
+                      "info": {
+                        "port": 8080,
+                        "protocol": "PROTOCOL_HTTP",
+                        "target_port": 8080
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+        }
+    }
+}
