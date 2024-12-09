@@ -3,7 +3,7 @@ Publish Sentence app in vK8S
 
 .. raw:: html
 
-    <a href="http://www.youtube.com/watch?v=Th6kKmvHxtI"><img src="http://img.youtube.com/vi/Th6kKmvHxtI/0.jpg" width="800" height="600" title="demo vK8S" alt="demo vK8S"></a>
+    <a href="http://www.youtube.com/watch?v=Th6kKmvHxtI"><img src="http://img.youtube.com/vi/Th6kKmvHxtI/0.jpg" width="500" height="300" title="demo vK8S" alt="demo vK8S"></a>
 
 
 .. contents:: Contents
