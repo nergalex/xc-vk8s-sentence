@@ -1,9 +1,10 @@
 Publish Sentence app in vK8S
 ####################################################################
 
-.. image:: https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/maxresdefault.jpg
-    :alt: demo
-    :target: https://www.youtube.com/watch?v=Th6kKmvHxtI
+.. raw:: html
+
+    <a href="http://www.youtube.com/watch?v=Th6kKmvHxtI"><img src="http://img.youtube.com/vi/Th6kKmvHxtI/0.jpg" width="800" height="600" title="demo vK8S" alt="demo vK8S"></a>
+
 
 .. contents:: Contents
     :local:
